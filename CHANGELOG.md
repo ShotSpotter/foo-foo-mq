@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [8.0.0](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v7.1.0...v8.0.0) (2023-02-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* **package.json:** remove support for node 12
+
+### Features
+
+* **.nvmrc, package.json, info.js, test-coverage-actions.yml:** add support for node 18 ([2a216e0](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/2a216e0c43bf1ebc27e25d5da29af8784d9e4ff1)), closes [#37](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/37)
+* **package.json:** support node 18 ([c056356](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/c056356f04f59d1f189fee75eaec66f0ac268b28))
+
 ## [7.1.0](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v7.0.0...v7.1.0) (2022-07-02)
 
 
