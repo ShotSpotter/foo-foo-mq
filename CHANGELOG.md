@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [8.0.1](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v8.0.0...v8.0.1) (2023-05-03)
+
+
+### Bug Fixes
+
+* **types:** add `Broker.emit()` and `Broker.off()` ([e492c72](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/e492c72d89f871b16ecf80f749e76d8e95097900))
+* **types:** add waitMax to ConnectionOptions ([b0d5034](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/b0d503402629e2b802db99fe6378169078825386))
+
 ## [8.0.0](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v7.1.0...v8.0.0) (2023-02-19)
 
 
