@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [9.0.0](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v8.0.1...v9.0.0) (2023-11-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* **package.json:** Removed support for node 14
+
+### Features
+
+* **.nvmrc, package.json, package-lock.json, test-coverage-actions.yml:** add support for Node 20 ([#49](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/49)) ([2b4c851](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/2b4c851a33efbdce0708675cedf58f6779ff56e6)), closes [#48](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/48)
+* **package.json:** node 14 support removed ([70833a7](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/70833a75de83ff093758dec65024214928c53c67))
+
 ### [8.0.1](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v8.0.0...v8.0.1) (2023-05-03)
 
 
