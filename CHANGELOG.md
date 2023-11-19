@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [9.0.1](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v9.0.0...v9.0.1) (2023-11-19)
+
+
+### Bug Fixes
+
+* **package-lock.json:** npm audit fix updates ([#52](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/52)) ([f6d2cef](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/f6d2cef196bd0f342dee06d1badfd3c01b4ade21))
+
 ## [9.0.0](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v8.0.1...v9.0.0) (2023-11-19)
 
 
