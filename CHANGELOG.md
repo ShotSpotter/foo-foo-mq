@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [9.0.3](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v9.0.2...v9.0.3) (2024-01-25)
+
+
+### Bug Fixes
+
+* **src/connectionfsm.js:** adding `channel.on('failed'` is breaking some tests,disabling for now ([4d3e763](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/4d3e76391cb75c68de28606c25bea4e15a234edf))
+* **test-coverage-actions.yml:** change to use v4 of actions/setup-node and actions/checkout ([ee81ba9](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/ee81ba900f7877f5b19ddd8699427f0c167e5834))
+* **test-coverage-actions.yml:** remove out of date node 16 action per github error request ([9029af5](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/9029af5f2d01399044b02e4643f78b74caac3684))
+
 ### [9.0.2](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v9.0.1...v9.0.2) (2024-01-25)
 
 
