@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [9.0.2](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v9.0.1...v9.0.2) (2024-01-25)
+
+
+### Bug Fixes
+
+* bubble channel failures up to the connection ([#16](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/16)) ([d340e74](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/d340e74d78cd376d08641fbf366bdf7d0c414506))
+
 ### [9.0.1](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v9.0.0...v9.0.1) (2023-11-19)
 
 
