@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [9.1.0](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v9.0.3...v9.1.0) (2024-04-08)
+
+### Features
+
+- **connection.js:** make sure `protocol` field is found and backwards compatible ([#26](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/26))
+- **index.d.ts:** Add `autoDelete` key to QueueOptions definition (it is documented and shown in examples)
+- **index.d.ts:** Add `messageTtl`, `passive` (existing fields) and `type` (x-queue-type, for quorum support) + protocol definition for [#26](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/26)
+- **queue.js:** add dead letter strategy argument (supports at least once since v3.10 for quorum) + update typing to reflect it
+- **queue.js:** Add proper support for quorum queues and silently omit incompatible fields
+- **queue.js:** Add queue version upport for classic queues + behavior test and doc entry
+- **queue.spec.js:** Add behavior test case for quorum queue type (not set)
+- **queue.spec.js:** Add test case for quorum queue type and check if call is valid
+
+### Bug Fixes
+
+- autodelete queue in test has to be classic
+- **integration:** proper protocol ([#26](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/26)) and fix url encode error ([#55](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/55))
+
 ### [9.0.3](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v9.0.2...v9.0.3) (2024-01-25)
 
 
