@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [9.2.0](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v9.1.0...v9.2.0) (2024-11-14)
+
+
+### Features
+
+* add `frameMax` connection option ([#57](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/57)) ([8ca9b46](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/8ca9b46578c3eef43a66ed711d6f5205d0a92968))
+* **node 22 support:** adding support for Node 22 ([#58](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/58)) ([a70b4aa](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/a70b4aadee823bbf6c60171f0f41648a859542ce))
+
 ## [9.1.0](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v9.0.3...v9.1.0) (2024-04-08)
 
 ### Features
