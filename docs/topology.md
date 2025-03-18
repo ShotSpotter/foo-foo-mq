@@ -10,7 +10,7 @@ If a disconnect takes place, foo-foo-mq will attempt to re-establish the connect
 
 This example shows most of the available options described above.
 ```javascript
-  var settings = {
+  const settings = {
     connection: {
       user: "guest",
       pass: "guest",
@@ -38,12 +38,44 @@ This example shows most of the available options described above.
 ```
 
 To establish a connection with all settings in place and ready to go call configure:
-```javascript
-  var rabbit = require( "foo-foo-mq" );
 
-  rabbit.configure( settings ).done( function() {
-    // ready to go!
-  } );
+```javascript
+  const rabbit = require( "foo-foo-mq" );
+
+  rabbit.configure( settings )
+    .then(() => {
+      // ready to go!
+    }).catch((err) => console.error(err))
+```
+
+### Caveat
+
+It can happen that configure is called before RabbitMQ is running ([#23](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/23#issuecomment-921194756)), which can cause a consumer to be connected without subscribers.
+Fortunately, it is easy to handle using simple retry logic.
+
+```javascript
+const rabbit = require( "foo-foo-mq" );
+const { setTimeout } = require( "timers/promises" );
+
+async function tryConfigure(
+  settings,
+  opts
+) {
+  const retries = opts.retries || 10;
+  try {
+    await rabbit.configure(settings);
+  } catch (error) {
+    if (error === 'No endpoints could be reached' && retries > 0) {
+      if (opts.defer) await setTimeout(opts.defer);
+      await rabbit.shutdown();
+      await rabbit.reset();
+      await this.tryConfigure(settings, { ...opts, retries: retries - 1 });
+    } else {
+      throw error;
+    }
+  }
+  return rabbit;
+}
 ```
 
 ## `rabbit.addExchange( exchangeName, exchangeType, [options], [connectionName] )`
@@ -74,8 +106,13 @@ The call returns a promise that can be used to determine when the queue has been
 
 Options is a hash that can contain the following:
 
+> **Warning:** Classic Mirrored Queues [are deprecated](https://www.rabbitmq.com/blog/2021/08/21/4.0-deprecation-announcements) and will no longer be supported [after v3.13](https://www.rabbitmq.com/blog/2024/03/11/rabbitmq-3.13.0-announcement#thats-a-wrap-for-3x).
+>
+> For quorum queues, [unsupported options](https://www.rabbitmq.com/docs/quorum-queues#feature-matrix) (`exclusive`, `autoDelete`, `maxPriority`) given to quorum queues will be *silently ignored*.
+
 | option | type | description | default  |
 |--:|:-:|:--|:-:|
+| **type** | string | Set the queue type to either `classic` or `quorum` | `classic` |
 | **autoDelete** | boolean | delete when consumer count goes to 0 | |
 | **durable** | boolean | survive broker restarts | false |
 | **exclusive** | boolean | limits queue to the current connection only (danger) | false |
@@ -85,14 +122,30 @@ Options is a hash that can contain the following:
 | **noBatch** | boolean | causes ack, nack & reject to take place immediately | false |
 | **noCacheKeys** | boolean | disable cache of matched routing keys to prevent unbounded memory growth | false |
 | **queueLimit** | 2^32 |max number of ready messages a queue can hold | |
+| **queueVersion** | `1`, `2` | Sets queue version for classic queues original (CQv1) and new (CQv2) | |
+| **overflow** | `drop-head`, `reject-publish` | Behavior when queue limit is reached, defaults to `drop-head`(discard oldest) | |
 | **messageTtl** | 2^32 |time in ms before a message expires on the queue | |
 | **expires** | 2^32 |time in ms before a queue with 0 consumers expires | |
 | **deadLetter** | string | the exchange to dead-letter messages to | |
 | **deadLetterRoutingKey** | string | the routing key to add to a dead-lettered message
+| **deadLetterStrategy** | `at-least-once`, `at-most-once` | the dead letter strategy, defaults to `at-most-once`.
 | **maxPriority** | 2^8 | the highest priority this queue supports | |
-| **unique** | `"hash", `"id", "consistent"` | creates a unique queue name by including the client id or hash in the name | |
+| **unique** | `hash`, `id`, `consistent` | creates a unique queue name by including the client id or hash in the name | |
 | **poison** | boolean | indicates that this queue is specifically for poison / rejected messages| false |
 | **passive** | boolean | when `true` will not create the queueName specified | false |
+
+### deadLetterStrategy
+
+ * `at-least-once` - enables [At-Least-Once Dead Lettering
+](https://www.rabbitmq.com/blog/2022/03/29/at-least-once-dead-lettering) (available since v3.10) for quorum queues, provided that:
+    * the [feature flag](https://www.rabbitmq.com/docs/feature-flags) `stream_queue` is enabled
+    * Option `overflow` is set to `reject-publish`
+ * `at-most-once` - the default strategy and backwards-compatible behavior
+
+### overflow
+
+ * `drop-head` - default behavior, drops or dead-letter messages from the front of the queue (i.e. the oldest messages in the queue)
+ * `reject-publish` - the most recently published messages will be discarded. In addition, if publisher confirms are enabled, the publisher will be informed of the reject via a basic.nack message
 
 ### unique
 

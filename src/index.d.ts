@@ -198,11 +198,12 @@ declare namespace Broker {
     port?: number;
     server?: string | string[];
     vhost?: string;
-    protocol?: string;
+    protocol?: "amqp" | "amqps";
     user?: string;
     pass?: string;
     timeout?: number;
     heartbeat?: number;
+    frameMax?: number;
     replyQueue?:
       | boolean
       | string
@@ -230,8 +231,16 @@ declare namespace Broker {
     name: string;
     limit?: number;
     queueLimit?: number;
+    queueVersion?: 1 | 2;
     deadLetter?: string;
+    deadLetterRoutingKey?: string;
+    deadLetterStrategy?: "at-most-once" | "at-least-once";
     subscribe?: boolean;
+    autoDelete?: boolean;
+    passive?: boolean;
+    messageTtl?: number;
+    type?: "classic" | "quorum";
+    overflow?: "drop-head" | "reject-publish";
   }
 
   export interface BindingOptions {

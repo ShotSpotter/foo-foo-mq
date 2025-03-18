@@ -2,6 +2,67 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [9.2.0](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v9.1.0...v9.2.0) (2024-11-14)
+
+
+### Features
+
+* add `frameMax` connection option ([#57](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/57)) ([8ca9b46](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/8ca9b46578c3eef43a66ed711d6f5205d0a92968))
+* **node 22 support:** adding support for Node 22 ([#58](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/58)) ([a70b4aa](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/a70b4aadee823bbf6c60171f0f41648a859542ce))
+
+## [9.1.0](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v9.0.3...v9.1.0) (2024-04-08)
+
+### Features
+
+- **connection.js:** make sure `protocol` field is found and backwards compatible ([#26](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/26))
+- **index.d.ts:** Add `autoDelete` key to QueueOptions definition (it is documented and shown in examples)
+- **index.d.ts:** Add `messageTtl`, `passive` (existing fields) and `type` (x-queue-type, for quorum support) + protocol definition for [#26](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/26)
+- **queue.js:** add dead letter strategy argument (supports at least once since v3.10 for quorum) + update typing to reflect it
+- **queue.js:** Add proper support for quorum queues and silently omit incompatible fields
+- **queue.js:** Add queue version upport for classic queues + behavior test and doc entry
+- **queue.spec.js:** Add behavior test case for quorum queue type (not set)
+- **queue.spec.js:** Add test case for quorum queue type and check if call is valid
+
+### Bug Fixes
+
+- autodelete queue in test has to be classic
+- **integration:** proper protocol ([#26](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/26)) and fix url encode error ([#55](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/55))
+
+### [9.0.3](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v9.0.2...v9.0.3) (2024-01-25)
+
+
+### Bug Fixes
+
+* **src/connectionfsm.js:** adding `channel.on('failed'` is breaking some tests,disabling for now ([4d3e763](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/4d3e76391cb75c68de28606c25bea4e15a234edf))
+* **test-coverage-actions.yml:** change to use v4 of actions/setup-node and actions/checkout ([ee81ba9](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/ee81ba900f7877f5b19ddd8699427f0c167e5834))
+* **test-coverage-actions.yml:** remove out of date node 16 action per github error request ([9029af5](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/9029af5f2d01399044b02e4643f78b74caac3684))
+
+### [9.0.2](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v9.0.1...v9.0.2) (2024-01-25)
+
+
+### Bug Fixes
+
+* bubble channel failures up to the connection ([#16](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/16)) ([d340e74](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/d340e74d78cd376d08641fbf366bdf7d0c414506))
+
+### [9.0.1](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v9.0.0...v9.0.1) (2023-11-19)
+
+
+### Bug Fixes
+
+* **package-lock.json:** npm audit fix updates ([#52](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/52)) ([f6d2cef](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/f6d2cef196bd0f342dee06d1badfd3c01b4ade21))
+
+## [9.0.0](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v8.0.1...v9.0.0) (2023-11-19)
+
+
+### ⚠ BREAKING CHANGES
+
+* **package.json:** Removed support for node 14
+
+### Features
+
+* **.nvmrc, package.json, package-lock.json, test-coverage-actions.yml:** add support for Node 20 ([#49](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/49)) ([2b4c851](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/2b4c851a33efbdce0708675cedf58f6779ff56e6)), closes [#48](https://github.com/Foo-Foo-MQ/foo-foo-mq/issues/48)
+* **package.json:** node 14 support removed ([70833a7](https://github.com/Foo-Foo-MQ/foo-foo-mq/commit/70833a75de83ff093758dec65024214928c53c67))
+
 ### [8.0.1](https://github.com/Foo-Foo-MQ/foo-foo-mq/compare/v8.0.0...v8.0.1) (2023-05-03)
 
 

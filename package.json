@@ -1,11 +1,11 @@
 {
   "name": "@sst-inc/foo-foo-mq",
-  "version": "8.0.1",
+  "version": "9.2.0",
   "description": "Abstractions to simplify working with the RabbitMQ",
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "engines": {
-    "node": ">=12 <=18"
+    "node": ">=16 <=22"
   },
   "repository": "https://github.com/ShotSpotter/foo-foo-mq",
   "scripts": {

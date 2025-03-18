@@ -20,11 +20,12 @@ Options is a hash that can contain the following:
 | **host** | the IP address or DNS name of the RabbitMQ server. | `"localhost"` |
 | **port** | the TCP/IP port on which RabbitMQ is listening. | `5672` |
 | **vhost** | the named vhost to use in RabbitMQ. | `"%2f"` ~ `"/"` |
-| **protocol** | the connection protocol to use. | `"amqp://"` |
+| **protocol** | the connection protocol to use. | `"amqp"` |
 | **user** | the username used for authentication / authorization with this connection | `"guest"` |
 | **pass** | the password for the specified user. | `"guest"` |
 | **timeout** | how long to wait for a connection to be established in milliseconds. | `2000` |
 | **heartbeat** | how often the client and server check to see if they can still reacheach other, specified in seconds. | `30` |
+| **frameMax** | the size in bytes of the maximum frame allowed over the connection. | `4096` |
 | **replyQueue** | the name of the reply queue to use. | unique to the process |
 | **publishTimeout** | the default timeout in milliseconds for a publish call. | |
 | **replyTimeout** | the default timeout in milliseconds to wait for a reply. | |
@@ -147,7 +148,7 @@ Your goal should be building systems resilient to failures (by allowing them to 
 
 ```js
 // How to create a zombie
-var rabbit = require( "foo-foo-mq" );
+const rabbit = require( "foo-foo-mq" );
 
 rabbit.on( "unreachable", function() {
   rabbit.retry();

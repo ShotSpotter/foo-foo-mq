@@ -47,10 +47,8 @@ function getOption (opts, key, alt) {
   }
 }
 
-function getUri (protocol, user, pass, server, port, vhost, heartbeat) {
-  return protocol + user + ':' + pass +
-    '@' + server + ':' + port + '/' + vhost +
-    '?heartbeat=' + heartbeat;
+function getUri (protocol, user, pass, server, port, vhost, heartbeat, frameMax) {
+  return `${protocol}://${user}:${pass}@${server}:${port}/${vhost}?heartbeat=${heartbeat}&frameMax=${frameMax}`;
 }
 
 function max (x, y) {
@@ -61,14 +59,16 @@ function parseUri (uri) {
   if (uri) {
     const parsed = new url.URL(uri);
     const heartbeat = parsed.searchParams.get('heartbeat');
+    const frameMax = parsed.searchParams.get('frameMax');
     return {
-      useSSL: parsed.protocol === 'amqps:',
-      user: parsed.username,
-      pass: parsed.password,
+      useSSL: parsed.protocol.startsWith('amqps'),
+      user: decodeURIComponent(parsed.username),
+      pass: decodeURIComponent(parsed.password),
       host: parsed.hostname,
       port: parsed.port,
       vhost: parsed.pathname ? parsed.pathname.slice(1) : undefined,
-      heartbeat: heartbeat
+      heartbeat: heartbeat,
+      frameMax: frameMax
     };
   }
 }
@@ -110,6 +110,7 @@ const Adapter = function (parameters) {
   this.pass = getOption(parameters, 'RABBIT_PASSWORD') || getOption(parameters, 'pass', 'guest');
   this.user = getOption(parameters, 'RABBIT_USER') || getOption(parameters, 'user', 'guest');
   this.vhost = getOption(parameters, 'RABBIT_VHOST') || getOption(parameters, 'vhost', '%2f');
+  this.frameMax = getOption(parameters, 'RABBIT_FRAME_MAX') || getOption(parameters, 'frameMax', 4096);
   const timeout = getOption(parameters, 'RABBIT_TIMEOUT') || getOption(parameters, 'timeout', 2000);
   const certPath = getOption(parameters, 'RABBIT_CERT') || getOption(parameters, 'certPath');
   const keyPath = getOption(parameters, 'RABBIT_KEY') || getOption(parameters, 'keyPath');
@@ -118,7 +119,7 @@ const Adapter = function (parameters) {
   const pfxPath = getOption(parameters, 'RABBIT_PFX') || getOption(parameters, 'pfxPath');
   const useSSL = certPath || keyPath || passphrase || caPaths || pfxPath || parameters.useSSL;
   const portList = getOption(parameters, 'RABBIT_PORT') || getOption(parameters, 'port', (useSSL ? 5671 : 5672));
-  this.protocol = getOption(parameters, 'RABBIT_PROTOCOL') || (useSSL ? 'amqps://' : 'amqp://');
+  this.protocol = getOption(parameters, 'RABBIT_PROTOCOL') || getOption(parameters, 'protocol', undefined)?.replace(/:\/\/$/, '') || (useSSL ? 'amqps' : 'amqp');
   this.ports = split(portList);
   this.options = { noDelay: true };
 
@@ -151,9 +152,10 @@ const Adapter = function (parameters) {
 
 Adapter.prototype.connect = function () {
   return new Promise(function (resolve, reject) {
+    const unreachable = 'No endpoints could be reached';
     const attempted = [];
     const attempt = function () {
-      const nextUri = this.getNextUri();
+      const [nextUri, serverHostname] = this.getNextUri();
       log.info("Attempting connection to '%s' (%s)", this.name, nextUri);
       function onConnection (connection) {
         connection.uri = nextUri;
@@ -168,16 +170,15 @@ Adapter.prototype.connect = function () {
           attempt(err);
         } else {
           log.info('Cannot connect to `%s` - all endpoints failed', this.name);
-          reject('No endpoints could be reached');
+          reject(unreachable);
         }
       }
       if (attempted.indexOf(nextUri) < 0) {
-        const serverHostname = new url.URL(nextUri).hostname;
         amqp.connect(nextUri, Object.assign({ servername: serverHostname }, this.options))
           .then(onConnection.bind(this), onConnectionError.bind(this));
       } else {
         log.info('Cannot connect to `%s` - all endpoints failed', this.name);
-        reject('No endpoints could be reached');
+        reject(unreachable);
       }
     }.bind(this);
     attempt();
@@ -195,8 +196,8 @@ Adapter.prototype.bumpIndex = function () {
 Adapter.prototype.getNextUri = function () {
   const server = this.getNext(this.servers);
   const port = this.getNext(this.ports);
-  const uri = getUri(this.protocol, this.user, escape(this.pass), server, port, this.vhost, this.heartbeat);
-  return uri;
+  const uri = getUri(this.protocol, encodeURIComponent(this.user), encodeURIComponent(this.pass), server, port, this.vhost, this.heartbeat, this.frameMax);
+  return [uri, server];
 };
 
 Adapter.prototype.getNext = function (list) {
