@@ -18,7 +18,7 @@
     "ci-coverage": "mkdir -p coverage && nyc npm test && nyc report --reporter=text-lcov > coverage/lcov.info",
     "release": "standard-version",
     "release:dry": "standard-version --dry-run",
-    "run-container": "docker run -d --name foofoomq -p 15672:15672 -p 5672:5672 -v $(pwd)/rabbit_enabled_plugins:/etc/rabbitmq/enabled_plugins:ro rabbitmq:3-management",
+    "run-container": "docker run -d --name foofoomq -p 15672:15672 -p 5672:5672 -v $(pwd)/rabbit_enabled_plugins:/etc/rabbitmq/enabled_plugins:ro rabbitmq:4-management",
     "start-container": "docker start foofoomq",
     "stop-container": "docker stop foofoomq",
     "remove-container": "docker rm -f foofoomq"
@@ -97,7 +97,7 @@
     "standard-version": "^9.1.1"
   },
   "dependencies": {
-    "amqplib": "~0.8.0",
+    "amqplib": "^0.10.9",
     "bole": "^4.0.0",
     "debug": "^4.1.1",
     "machina": "^4.0.2",

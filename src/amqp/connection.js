@@ -110,7 +110,8 @@ const Adapter = function (parameters) {
   this.pass = getOption(parameters, 'RABBIT_PASSWORD') || getOption(parameters, 'pass', 'guest');
   this.user = getOption(parameters, 'RABBIT_USER') || getOption(parameters, 'user', 'guest');
   this.vhost = getOption(parameters, 'RABBIT_VHOST') || getOption(parameters, 'vhost', '%2f');
-  this.frameMax = getOption(parameters, 'RABBIT_FRAME_MAX') || getOption(parameters, 'frameMax', 4096);
+  // RabbitMQ 4.1 increased the initial frame size offer from 4096 to 8192 bytes
+  this.frameMax = getOption(parameters, 'RABBIT_FRAME_MAX') || getOption(parameters, 'frameMax', 8192);
   const timeout = getOption(parameters, 'RABBIT_TIMEOUT') || getOption(parameters, 'timeout', 2000);
   const certPath = getOption(parameters, 'RABBIT_CERT') || getOption(parameters, 'certPath');
   const keyPath = getOption(parameters, 'RABBIT_KEY') || getOption(parameters, 'keyPath');

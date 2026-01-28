@@ -106,7 +106,7 @@ The call returns a promise that can be used to determine when the queue has been
 
 Options is a hash that can contain the following:
 
-> **Warning:** Classic Mirrored Queues [are deprecated](https://www.rabbitmq.com/blog/2021/08/21/4.0-deprecation-announcements) and will no longer be supported [after v3.13](https://www.rabbitmq.com/blog/2024/03/11/rabbitmq-3.13.0-announcement#thats-a-wrap-for-3x).
+> **Important:** Classic Mirrored Queues have been completely removed in RabbitMQ 4.0. Use [Quorum Queues](https://www.rabbitmq.com/docs/quorum-queues) or [Streams](https://www.rabbitmq.com/docs/streams) for message replication.
 >
 > For quorum queues, [unsupported options](https://www.rabbitmq.com/docs/quorum-queues#feature-matrix) (`exclusive`, `autoDelete`, `maxPriority`) given to quorum queues will be *silently ignored*.
 
