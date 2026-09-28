@@ -158,6 +158,14 @@ AckBatch.prototype._resolveAll = function (status, first, last) {
         }
         this.acking = false;
       }.bind(this));
+  } else {
+    // Nothing left to resolve. This happens when the batch was reset while a
+    // status was still recorded on it - for example when the channel was
+    // replaced and a handler that was already in flight resolved its message
+    // afterwards. `acking` has to be released here, otherwise it stays true
+    // forever and no further batch ack/nack/reject is ever sent for this queue.
+    this[first] = undefined;
+    this.acking = false;
   }
 };
 
