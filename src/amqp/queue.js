@@ -252,7 +252,7 @@ function getUntrackedOps (channel, raw, messages) {
 function purgeADQueue (channel, connectionName, options, messages) {
   const name = options.uniqueName || options.name;
   return new Promise(function (resolve, reject) {
-    const messageCount = messages.length;
+    const messageCount = messages.messages.length;
     if (messageCount > 0) {
       log.info(`Purge operation for queue '${options.name}' on '${connectionName}' is waiting for resolution on ${messageCount} messages`);
       messages.once('empty', function () {
