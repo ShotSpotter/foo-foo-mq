@@ -25,6 +25,7 @@ const defer = require('./defer');
     * `warn`:
       * attempt to acquire a channel during user initiated connection close
       * attempt to acquire a channel on a user-closed connection
+      * a channel failure was escalated to the connection
     * `error`:
       * on failed channel creation
       * failed reconnection
@@ -68,11 +69,28 @@ const Connection = function (options, connectionFn, channelFn) {
           channel.on('return', (raw) => {
             this.emit('return', raw);
           });
-          // channel.on('failed', () => {
-          //   todo: figure out why this breaks the tests https://github.com/Foo-Foo-MQ/foo-foo-mq/actions/runs/7660491629/job/20877897843
-          //   this.transition('failed');
-          //   this.handle('failed');
-          // });
+          channel.on('failed', (err) => {
+            // A channel-level failure must not be swallowed. The iomonad
+            // recovers the channel in place, which leaves consumers on it dead
+            // with no event reaching the application - see
+            // https://github.com/arobson/rabbot/issues/155. Escalating to the
+            // connection triggers topology.onReconnect(), which re-establishes
+            // both the topology and its subscriptions.
+            //
+            // Ignore failures raised while the connection is being torn down or
+            // is already known to be down: forcing a transition in those states
+            // is what made the original version of this hang the test suite
+            // (see 4d3e763).
+            if (/clos/.test(this.state) ||
+                this.state === 'failed' ||
+                this.state === 'unreachable') {
+              return;
+            }
+            log.warn("Escalating failure of channel '%s' on '%s' to the connection - %s",
+              name, this.name, err ? (err.stack || err) : 'no error provided');
+            this.transition('failed');
+            this.handle('failed', err);
+          });
         });
       } else {
         return Promise.resolve(channel);
@@ -85,7 +103,7 @@ const Connection = function (options, connectionFn, channelFn) {
     },
 
     _onChannelFailure: function (name, context, error) {
-      log.error("Failed to create channel '%s' on '%s' for '%s' with %s", name, this.name, error);
+      log.error("Failed to create channel '%s' on '%s' for '%s' with %s", name, this.name, context, error);
       return Promise.reject(error);
     },
 
@@ -106,7 +124,7 @@ const Connection = function (options, connectionFn, channelFn) {
       }
 
       function reacquireFailed (err) {
-        log.error("Could not complete reconnection of '%s' due to %s", err);
+        log.error("Could not complete reconnection of '%s' due to %s", this.name, err);
         this.transition('failed');
         this.handle('failed', err);
       }
@@ -285,8 +303,9 @@ const Connection = function (options, connectionFn, channelFn) {
         acquiring: function () {
           this.transition('connecting');
         },
-        channel: function () {
-          log.warn("Channel '%s' on '%s' was requested for '%s' which was closed by user. Request will be deferred until connection is re-established explicitly by user.");
+        channel: function (request) {
+          log.warn("Channel '%s' on '%s' was requested for '%s' which was closed by user. Request will be deferred until connection is re-established explicitly by user.",
+            request.name, this.name, request.context);
           this.deferUntilTransition('connected');
         },
         close: function (deferred) {
@@ -316,7 +335,8 @@ const Connection = function (options, connectionFn, channelFn) {
           }
         },
         channel: function (request) {
-          log.warn("Channel '%s' on '%s' was requested for '%s' during user initiated close. Request will be rejected.");
+          log.warn("Channel '%s' on '%s' was requested for '%s' during user initiated close. Request will be rejected.",
+            request.name, this.name, request.context);
           request.deferred.reject(new Error(
             format("Illegal request for channel '%s' during close of connection '%s' initiated by user",
               request.name,
