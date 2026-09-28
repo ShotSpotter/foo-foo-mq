@@ -9,6 +9,9 @@ const topLog = require('../log')('rabbot.topology');
 const unhandledLog = require('../log')('rabbot.unhandled');
 const noOp = function () {};
 
+// how long to wait before re-establishing a consumer that the broker cancelled
+const RESUBSCRIBE_DELAY = 500;
+
 /* log
   * `rabbot.amqp-queue`
     * `debug`
@@ -16,12 +19,15 @@ const noOp = function () {};
     * `info`
       * subscribing
       * unsubscribing
+      * re-subscribing after a consumer cancel notification
     * `warn`
       * no message handlers for message received
+      * consumer cancelled by the broker
     * `error`
       * no serializer defined for outgoing message
       * no serializer defined for incoming message
       * message nacked/rejected when consumer is set to no-ack
+      * failed to re-subscribe after a consumer cancel notification
   * `rabbot.topology`
     * `info`
       * queue declaration
@@ -49,6 +55,19 @@ function argOptions (options) {
     args['x-queue-version'] = options.queueVersion;
   }
   return args;
+}
+
+function countConsumers (consumers) {
+  if (!consumers) {
+    return 0;
+  }
+  // amqplib exposes `consumers` as a plain object up to 0.8.x and as a Map in
+  // later versions. Object.keys() on a Map returns [], which would silently
+  // turn this guard into a no-op and allow duplicate consumers, so handle both.
+  if (typeof Map !== 'undefined' && consumers instanceof Map) {
+    return consumers.size;
+  }
+  return Object.keys(consumers).length;
 }
 
 function define (channel, options, subscriber, connectionName) {
@@ -233,7 +252,7 @@ function getUntrackedOps (channel, raw, messages) {
 function purgeADQueue (channel, connectionName, options, messages) {
   const name = options.uniqueName || options.name;
   return new Promise(function (resolve, reject) {
-    const messageCount = messages.messages.length;
+    const messageCount = messages.length;
     if (messageCount > 0) {
       log.info(`Purge operation for queue '${options.name}' on '${connectionName}' is waiting for resolution on ${messageCount} messages`);
       messages.once('empty', function () {
@@ -347,6 +366,32 @@ function resolveTags (channel, queue, connection) {
   };
 }
 
+// The broker can cancel a consumer without closing the channel (quorum queue
+// leader failover, queue deleted, policy change). amqplib signals this by
+// invoking the consumer callback with a null message, having already discarded
+// the consumer tag. Nothing in the library reacts to that, so the process keeps
+// an open channel on a live connection and silently stops consuming. Note the
+// channel itself is still usable and delivery tags for messages already
+// delivered remain valid, so in-flight work is left alone here.
+function onConsumerCancelled (channelName, channel, topology, serializers, messages, options, exclusive) {
+  log.warn("Queue '%s' on '%s' was sent a consumer cancel notification - re-subscribing in %dms",
+    channelName, topology.connection.name, RESUBSCRIBE_DELAY);
+  channel.tag = undefined;
+  setTimeout(function () {
+    subscribe(channelName, channel, topology, serializers, messages, options, exclusive)
+      .then(
+        function (result) {
+          log.info("Re-subscribed to queue '%s' on '%s' with consumer tag %s",
+            channelName, topology.connection.name, result ? result.consumerTag : options.consumerTag);
+        },
+        function (err) {
+          log.error("Failed to re-subscribe to queue '%s' on '%s' after a consumer cancel notification - %s",
+            channelName, topology.connection.name, err.stack || err);
+        }
+      );
+  }, RESUBSCRIBE_DELAY);
+}
+
 function subscribe (channelName, channel, topology, serializers, messages, options, exclusive) {
   const shouldAck = !options.noAck;
   const shouldBatch = !options.noBatch;
@@ -358,7 +403,16 @@ function subscribe (channelName, channel, topology, serializers, messages, optio
   }
 
   options.consumerTag = info.createTag(channelName);
-  if (Object.keys(channel.item.consumers).length > 0) {
+  // The iomonad nulls `item` out in its closed and released states. Reading
+  // through it there throws synchronously, before a promise exists, so the
+  // caller's `.catch` never sees it and the error escapes to the caller of
+  // `handle('subscribe')` instead.
+  if (!channel.item) {
+    return Promise.reject(new Error(format(
+      "Cannot subscribe to queue '%s' on '%s' - the channel is not currently acquired",
+      channelName, topology.connection.name)));
+  }
+  if (countConsumers(channel.item.consumers) > 0) {
     log.info('Duplicate subscription to queue %s ignored', channelName);
     return Promise.resolve(options.consumerTag);
   }
@@ -366,8 +420,8 @@ function subscribe (channelName, channel, topology, serializers, messages, optio
   return channel.consume(channelName, function (raw) {
     if (!raw) {
       // this happens when the consumer has been cancelled
-      log.warn("Queue '%s' was sent a consumer cancel notification");
-      throw new Error('Broker cancelled the consumer remotely');
+      onConsumerCancelled(channelName, channel, topology, serializers, messages, options, exclusive);
+      return;
     }
     const correlationId = raw.properties.correlationId;
     const ops = getResolutionOperations(channel, raw, messages, options);
@@ -466,7 +520,8 @@ function subscribe (channelName, channel, topology, serializers, messages, optio
       channel.tag = result.consumerTag;
       return result;
     }, function (err) {
-      log.error('Error on channel consume', options);
+      log.error("Error on channel consume for queue '%s' on '%s' - %s",
+        channelName, topology.connection.name, err.stack || err);
       throw err;
     });
 }
