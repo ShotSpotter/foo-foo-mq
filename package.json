@@ -23,9 +23,6 @@
     "stop-container": "docker stop foofoomq",
     "remove-container": "docker rm -f foofoomq"
   },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
-  },
   "author": {
     "name": "Foo-Foo-MQ Team",
     "email": "dev@foofoomq.com"
