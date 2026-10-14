@@ -11,9 +11,11 @@ const defer = require('./defer');
       * release called
     * `info`
       * subscription started
+      * subscription re-established after channel recovery
       * queue released
     * `warn`
       * queue released with pending messages
+      * channel was re-acquired underneath the queue
 */
 
 function unhandle (handlers) {
@@ -36,6 +38,7 @@ const Factory = function (options, connection, topology, serializers, queueFn) {
     purger: undefined,
     unsubscribers: [],
     releasers: [],
+    resubscribeOnDefine: false,
 
     _define: function (queue) {
       const onError = function (err) {
@@ -49,7 +52,22 @@ const Factory = function (options, connection, topology, serializers, queueFn) {
           queue.messages.changeName(this.name);
           topology.renameQueue(defined.queue);
         }
+        // Capture and clear before transitioning: the transition drains
+        // machina's deferred input queue synchronously, which can re-enter
+        // this FSM.
+        const resubscribe = this.resubscribeOnDefine;
+        this.resubscribeOnDefine = false;
         this.transition('ready');
+        if (resubscribe && options.subscribe) {
+          // The queue has just been re-declared on a replacement channel, but
+          // the consumer was never re-established - basic.consume is only
+          // issued from _listen, which is not re-entered for a channel that
+          // was recovered in place. Without this the process keeps a healthy
+          // connection and an open channel while silently consuming nothing.
+          log.info("Re-establishing subscription to queue '%s' - '%s' after channel recovery",
+            options.name, connection.name);
+          this.handle('subscribe');
+        }
       }.bind(this);
       queue.define()
         .then(onDefined, onError);
@@ -119,6 +137,22 @@ const Factory = function (options, connection, topology, serializers, queueFn) {
       this.purger = purger;
 
       handlers.push(queue.channel.on('acquired', function () {
+        // Only ever invoked when the channel is *re*-acquired: the initial
+        // acquisition completes before _listen attaches this handler. The
+        // iomonad recovers channel-level failures in place and does not tell
+        // the queue FSM anything else, so this is the only signal we get that
+        // the consumer was lost.
+        log.warn("Channel for queue '%s' - '%s' was re-acquired, re-declaring queue%s",
+          options.name,
+          connection.name,
+          options.subscribe ? ' and re-establishing subscription' : '');
+        // Delivery tags issued on the previous channel are meaningless on the
+        // new one. Acking them would get this channel killed by the broker
+        // with a 406 PRECONDITION_FAILED, which is usually how we got here.
+        if (queue.messages && typeof queue.messages.reset === 'function') {
+          queue.messages.reset();
+        }
+        this.resubscribeOnDefine = true;
         this._define(queue);
       }.bind(this))
       );
